@@ -1,4 +1,4 @@
-const productionUrl = "https://your-production-url.com";
+const productionUrl = "https://hossom.shop/api/job";
 
 export const backendUrl =
   process.env.NEXT_PUBLIC_NODE_ENV === "production"

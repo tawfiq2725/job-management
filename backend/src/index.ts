@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { db } from "./db/connection";
 import cors from "cors";
 import jobroutes from "./apis/api.job";
+import logger from "morgan";
 import errorMiddleware from "./utils/errorHandle";
 dotenv.config();
 db();
@@ -11,6 +12,7 @@ const PORT = process.env.APP_PORT || 8000;
 
 app.use(express.json());
 app.use(cors());
+app.use(logger("dev"));
 
 app.use("/api/job", jobroutes);
 app.use(errorMiddleware);

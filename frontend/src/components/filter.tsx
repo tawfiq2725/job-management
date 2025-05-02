@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, MapPin, Users, ChevronDown } from "lucide-react";
-
+import { Search, MapPin, ChevronDown } from "lucide-react";
+import LogoSvg from "../../public/Vector.svg";
+import Image from "next/image";
 interface JobFilters {
   searchQuery: string;
   location: string | null;
@@ -17,7 +18,7 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("Preferred Location");
   const [jobType, setJobType] = useState("Job type");
-  const [salary, setSalary] = useState<[number, number]>([0, 100]);
+  const [salary, setSalary] = useState<[number, number]>([50, 80]);
 
   // Dropdown states
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
@@ -25,14 +26,12 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
 
   // Refs for range slider
   const rangeRef = useRef<HTMLDivElement | null>(null);
-  const minThumbRef = useRef<HTMLDivElement | null>(null);
-  const maxThumbRef = useRef<HTMLDivElement | null>(null);
   const rangeTrackRef = useRef<HTMLDivElement | null>(null);
 
   // For debouncing filter changes
   const filterDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const locations = ["Chennai", "Banglore", "Hyderabad", "Noida", "Remote"];
+  const locations = ["Chennai", "Bangalore", "Hyderabad", "Noida", "Remote"];
   const jobTypes = ["Full-time", "Part-time", "Contract", "Internship"];
 
   // Send filter updates to parent component with debounce
@@ -54,7 +53,6 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
   // Update filters when any input changes
   useEffect(() => {
     updateFilters();
-    
     return () => {
       if (filterDebounceRef.current) {
         clearTimeout(filterDebounceRef.current);
@@ -72,10 +70,10 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
 
     const minVal = salary[0];
     const maxVal = salary[1];
-    const range = 100;
+    const range = 100; // Range from 0 to 100 (representing 0k to 100k)
     const newValue = Math.round((position / 100) * range);
 
-    // Ensure min doesn't exceed max and max doesn't go below min
+    // Ensure min doesn't exceed max and vice versa
     if (isMin) {
       setSalary([Math.min(newValue, maxVal - 5), maxVal]);
     } else {
@@ -113,8 +111,8 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
   // Update range track position
   useEffect(() => {
     if (rangeTrackRef.current) {
-      const minPercent = (salary[0] / 100) * 100;
-      const maxPercent = (salary[1] / 100) * 100;
+      const minPercent = ((salary[0] - 0) / (100 - 0)) * 100;
+      const maxPercent = ((salary[1] - 0) / (100 - 0)) * 100;
 
       rangeTrackRef.current.style.left = `${minPercent}%`;
       rangeTrackRef.current.style.width = `${maxPercent - minPercent}%`;
@@ -125,7 +123,7 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      
+
       const locationDropdown = document.getElementById("location-dropdown");
       const jobTypeDropdown = document.getElementById("jobtype-dropdown");
 
@@ -153,44 +151,52 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
   }, [locationDropdownOpen, jobTypeDropdownOpen]);
 
   return (
-    <div className="w-full bg-white shadow-sm rounded-lg px-3 mb-6">
-      <div className="flex flex-col md:flex-row items-center gap-2 py-3">
+    <div className="w-full bg-white rounded-lg px-3 py-3">
+      <div className="flex flex-col md:flex-row items-center gap-3">
         {/* Search Input */}
-        <div className="relative w-full md:w-1/4">
+        <div className="relative w-full">
           <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             size={18}
           />
           <input
             type="text"
             placeholder="Search By Job Title, Role"
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 text-black"
+            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 text-gray-700 text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
         {/* Location Dropdown */}
-        <div className="relative w-full md:w-1/4" id="location-dropdown">
+        <div className="relative w-full" id="location-dropdown">
           <div
-            className="flex items-center w-full px-4 py-3 border border-gray-200 rounded-lg cursor-pointer"
+            className="flex items-center w-full px-4 py-4 border border-gray-300 rounded-md cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setLocationDropdownOpen(!locationDropdownOpen);
               setJobTypeDropdownOpen(false);
             }}
           >
-            <MapPin size={18} className="text-gray-700 mr-3" />
-            <span className="text-black flex-1 font-medium">{location}</span>
-            <ChevronDown size={18} className="text-gray-700" />
+            <MapPin size={18} className="text-gray-400 mr-2" />
+            <span
+              className={`flex-1 text-sm ${
+                location === "Preferred Location"
+                  ? "text-gray-400"
+                  : "text-gray-700"
+              }`}
+            >
+              {location}
+            </span>
+            <ChevronDown size={18} className="text-gray-400" />
           </div>
 
           {locationDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
               {locations.map((loc, index) => (
                 <div
                   key={index}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black font-medium"
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm"
                   onClick={() => {
                     setLocation(loc);
                     setLocationDropdownOpen(false);
@@ -204,26 +210,36 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
         </div>
 
         {/* Job Type Dropdown */}
-        <div className="relative w-full md:w-1/4" id="jobtype-dropdown">
+        <div className="relative w-full" id="jobtype-dropdown">
           <div
-            className="flex items-center w-full px-4 py-3 border border-gray-200 rounded-lg cursor-pointer"
+            className="flex items-center w-full px-4 py-4 border border-gray-300 rounded-md cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setJobTypeDropdownOpen(!jobTypeDropdownOpen);
               setLocationDropdownOpen(false);
             }}
           >
-            <Users size={18} className="text-gray-700 mr-3" />
-            <span className="text-black flex-1 font-medium">{jobType}</span>
-            <ChevronDown size={18} className="text-gray-700" />
+            <Image
+              src={LogoSvg}
+              alt="Logo"
+              className="w-4 h-4 text-gray-400 mr-2"
+            />
+            <span
+              className={`flex-1 text-sm ${
+                jobType === "Job type" ? "text-gray-400" : "text-gray-700"
+              }`}
+            >
+              {jobType}
+            </span>
+            <ChevronDown size={18} className="text-gray-400" />
           </div>
 
           {jobTypeDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
               {jobTypes.map((type, index) => (
                 <div
                   key={index}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black font-medium"
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm"
                   onClick={() => {
                     setJobType(type);
                     setJobTypeDropdownOpen(false);
@@ -237,52 +253,41 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
         </div>
 
         {/* Salary Range Slider */}
-        <div className="w-full md:w-1/4 px-2 py-2">
-          <div className="px-2">
-            <div className="text-sm font-medium text-black mb-2">
-              Salary Per Month
-            </div>
-            <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-sm font-bold text-black">
-                ₹{salary[0]}k
-              </span>
-              <span className="text-sm font-bold text-black">
-                ₹{salary[1]}k
-              </span>
-            </div>
+        <div className="w-full px-2 py-2">
+          <div className="text-xs font-medium text-black mb-1">
+            Salary Per Month
+          </div>
+          <div className="flex items-center justify-center mb-2">
+            <span className="text-xs font-bold text-black">
+              ₹{salary[0]}k - ₹{salary[1]}k
+            </span>
+          </div>
+          <div
+            className="relative h-1 bg-gray-200 rounded-full cursor-pointer"
+            ref={rangeRef}
+          >
+            {/* Active Range Track */}
             <div
-              className="relative h-1 bg-gray-200 rounded-full my-6 cursor-pointer"
-              ref={rangeRef}
+              ref={rangeTrackRef}
+              className="absolute top-0 h-1 bg-black rounded-full"
+            />
+
+            {/* Min Thumb */}
+            <div
+              className="absolute -top-2 -ml-2 touch-none"
+              style={{ left: `${((salary[0] - 0) / (100 - 0)) * 100}%` }}
+              onMouseDown={startDrag(true)}
             >
-              {/* Active Range Track */}
-              <div
-                ref={rangeTrackRef}
-                className="absolute top-0 h-1 bg-black rounded-full"
-                style={{
-                  left: `${(salary[0] / 100) * 100}%`,
-                  width: `${((salary[1] - salary[0]) / 100) * 100}%`,
-                }}
-              ></div>
+              <div className="w-5 h-5 bg-white border-2 border-black rounded-full cursor-grab shadow-md"></div>
+            </div>
 
-              {/* Min Thumb */}
-              <div
-                ref={minThumbRef}
-                className="absolute -top-2 -ml-2 touch-none"
-                style={{ left: `${(salary[0] / 100) * 100}%` }}
-                onMouseDown={startDrag(true)}
-              >
-                <div className="w-5 h-5 bg-white border-2 border-black rounded-full cursor-grab"></div>
-              </div>
-
-              {/* Max Thumb */}
-              <div
-                ref={maxThumbRef}
-                className="absolute -top-2 -ml-2 touch-none"
-                style={{ left: `${(salary[1] / 100) * 100}%` }}
-                onMouseDown={startDrag(false)}
-              >
-                <div className="w-5 h-5 bg-white border-2 border-black rounded-full cursor-grab"></div>
-              </div>
+            {/* Max Thumb */}
+            <div
+              className="absolute -top-2 -ml-2 touch-none"
+              style={{ left: `${((salary[1] - 0) / (100 - 0)) * 100}%` }}
+              onMouseDown={startDrag(false)}
+            >
+              <div className="w-5 h-5 bg-white border-2 border-black rounded-full cursor-grab shadow-md"></div>
             </div>
           </div>
         </div>

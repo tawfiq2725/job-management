@@ -48,35 +48,67 @@ export class JobRepository implements JobRepoSitory {
     const values: any[] = [];
     let idx = 1;
 
+    console.log("Filters:", filters); // Debug input
+
     if (filters.title) {
       baseQuery += ` AND LOWER(title) LIKE LOWER($${idx++})`;
       values.push(`%${filters.title}%`);
     }
 
     if (filters.location) {
-      baseQuery += ` AND LOWER(location) LIKE LOWER($${idx++})`;
-      values.push(`%${filters.location}%`);
+      // Use exact match for location to avoid partial matches
+      baseQuery += ` AND location = $${idx++}`;
+      values.push(filters.location);
     }
 
     if (filters.job_type) {
+      // Ensure job_type is one of the allowed values
+      const validJobTypes = [
+        "Full-time",
+        "Part-time",
+        "Contract",
+        "Internship",
+      ];
+      if (!validJobTypes.includes(filters.job_type)) {
+        throw new Error(`Invalid job_type: ${filters.job_type}`);
+      }
       baseQuery += ` AND job_type = $${idx++}`;
       values.push(filters.job_type);
     }
 
     if (filters.minSalary !== undefined) {
+      if (filters.minSalary < 0)
+        throw new Error("minSalary cannot be negative");
+      // Convert monthly INR to yearly INR
+      const minSalaryINR = filters.minSalary * 12;
       baseQuery += ` AND salary_range >= $${idx++}`;
-      values.push(filters.minSalary);
+      values.push(minSalaryINR);
     }
 
     if (filters.maxSalary !== undefined) {
+      if (filters.maxSalary < 0)
+        throw new Error("maxSalary cannot be negative");
+      // Convert monthly INR to yearly INR
+      const maxSalaryINR = filters.maxSalary * 12;
       baseQuery += ` AND salary_range <= $${idx++}`;
-      values.push(filters.maxSalary);
+      values.push(maxSalaryINR);
+    }
+
+    // Validate minSalary <= maxSalary
+    if (filters.minSalary !== undefined && filters.maxSalary !== undefined) {
+      if (filters.minSalary > filters.maxSalary) {
+        throw new Error("minSalary cannot be greater than maxSalary");
+      }
     }
 
     baseQuery += ` ORDER BY created_at DESC`;
 
+    console.log("SQL Query:", baseQuery);
+    console.log("Query Values:", values);
+
     try {
       const result = await pool.query(baseQuery, values);
+      console.log("Rows returned:", result.rows.length);
       return result.rows.map((row) => ({
         ...row,
         application_deadline: new Date(row.application_deadline),

@@ -13,9 +13,9 @@ export class Job {
     try {
       // Match the exact query-param names you’re sending:
       const filters = {
-        title: req.query.title as string | undefined,
+        title: req.query.search as string | undefined,
         location: req.query.location as string | undefined,
-        job_type: req.query.job_type as string | undefined,
+        job_type: req.query.jobType as string | undefined,
         minSalary: req.query.minSalary
           ? Number(req.query.minSalary)
           : undefined,

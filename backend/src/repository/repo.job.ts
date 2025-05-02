@@ -50,19 +50,20 @@ export class JobRepository implements JobRepoSitory {
 
     console.log("Filters:", filters); // Debug input
 
+    // Handle title filter with partial match (case-insensitive)
     if (filters.title) {
       baseQuery += ` AND LOWER(title) LIKE LOWER($${idx++})`;
       values.push(`%${filters.title}%`);
     }
 
+    // Handle location filter with exact match
     if (filters.location) {
-      // Use exact match for location to avoid partial matches
       baseQuery += ` AND location = $${idx++}`;
       values.push(filters.location);
     }
 
+    // Handle job_type filter with exact match
     if (filters.job_type) {
-      // Ensure job_type is one of the allowed values
       const validJobTypes = [
         "Full-time",
         "Part-time",
@@ -76,19 +77,21 @@ export class JobRepository implements JobRepoSitory {
       values.push(filters.job_type);
     }
 
+    // Handle minSalary filter (converted to yearly INR)
     if (filters.minSalary !== undefined) {
-      if (filters.minSalary < 0)
+      if (filters.minSalary < 0) {
         throw new Error("minSalary cannot be negative");
-      // Convert monthly INR to yearly INR
+      }
       const minSalaryINR = filters.minSalary * 12;
       baseQuery += ` AND salary_range >= $${idx++}`;
       values.push(minSalaryINR);
     }
 
+    // Handle maxSalary filter (converted to yearly INR)
     if (filters.maxSalary !== undefined) {
-      if (filters.maxSalary < 0)
+      if (filters.maxSalary < 0) {
         throw new Error("maxSalary cannot be negative");
-      // Convert monthly INR to yearly INR
+      }
       const maxSalaryINR = filters.maxSalary * 12;
       baseQuery += ` AND salary_range <= $${idx++}`;
       values.push(maxSalaryINR);
@@ -109,6 +112,13 @@ export class JobRepository implements JobRepoSitory {
     try {
       const result = await pool.query(baseQuery, values);
       console.log("Rows returned:", result.rows.length);
+
+      // If no rows match the exact criteria, return empty array
+      if (result.rows.length === 0) {
+        return [];
+      }
+
+      // Map the results to the desired Job format
       return result.rows.map((row) => ({
         ...row,
         application_deadline: new Date(row.application_deadline),

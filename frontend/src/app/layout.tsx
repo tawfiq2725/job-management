@@ -25,7 +25,7 @@ export default function RootLayout({
 
   useEffect(() => {
     // Show loader for at least 800ms (or tie this to actual data-load)
-    const timer = setTimeout(() => setLoading(false), 800);
+    const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
 

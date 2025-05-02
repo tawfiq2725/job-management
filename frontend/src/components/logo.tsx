@@ -1,5 +1,10 @@
-export const Logo = () => (
+"use client"
+interface LogoProps {
+  className?: string;
+}
+export const Logo: React.FC<LogoProps> = ({ className }) => (
   <svg
+    className={className}
     width="40"
     height="46"
     viewBox="0 0 40 46"

@@ -17,7 +17,7 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("Preferred Location");
   const [jobType, setJobType] = useState("Job type");
-  const [salary, setSalary] = useState<[number, number]>([0, 60]);
+  const [salary, setSalary] = useState<[number, number]>([0, 100]);
 
   // Dropdown states
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);

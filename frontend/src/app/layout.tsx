@@ -33,6 +33,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link href="https://fonts.cdnfonts.com/css/satoshi" rel="stylesheet" />
+        <link rel="shortcut icon" href="/cmwlogo.png" type="image/x-icon" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body

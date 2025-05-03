@@ -27,10 +27,8 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  // Track if this is the initial load
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Function to build query params from filters
   const buildQueryParams = (filters: JobFilters): string => {
     const params = new URLSearchParams();
 
@@ -50,8 +48,7 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
     return params.toString();
   };
 
-  // Fetch jobs using the provided filters
-  const fetchJobs = useCallback(async () => {
+ const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
       const queryParams = buildQueryParams(filters);
@@ -59,7 +56,7 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
         ? `${backendUrl}/all-jobs?${queryParams}`
         : `${backendUrl}/all-jobs`;
 
-      console.log("Fetching jobs with URL:", url); // Debug log
+      console.log("Fetching jobs with URL:", url);
 
       const response = await fetch(url);
       const result = await response.json();
@@ -74,14 +71,12 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
       setError("An error occurred while fetching jobs");
     } finally {
       setLoading(false);
-      // Mark initial load as complete
       if (isInitialLoad) {
         setIsInitialLoad(false);
       }
     }
   }, [filters, isInitialLoad]);
 
-  // Use effect to fetch jobs when filters change
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
@@ -89,7 +84,10 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
   if (loading && isInitialLoad) {
     return (
       <div className="min-h-screen bg-white p-4 flex justify-center items-center">
-        <div className="text-xl">Loading jobs...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-lg text-gray-600">Loading jobs...</p>
+        </div>
       </div>
     );
   }
@@ -97,12 +95,33 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
   if (error) {
     return (
       <div className="min-h-screen bg-white p-4 flex justify-center items-center">
-        <div className="text-xl text-red-500">{error}</div>
+        <div className="text-center p-6 bg-red-50 rounded-lg max-w-md">
+          <svg
+            className="w-12 h-12 text-red-500 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchJobs}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
-  // Split jobs into rows for the grid layout
   const firstRowJobs = jobs.slice(0, 4);
   const secondRowJobs = jobs.slice(4, 8);
 
@@ -111,7 +130,8 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
       <div className="container mx-auto">
         {loading && !isInitialLoad && (
           <div className="text-center py-2 mb-4">
-            <div className="inline-block px-4 py-2 bg-blue-100 text-blue-800 rounded">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-lg">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500 mr-2"></div>
               Updating results...
             </div>
           </div>
@@ -119,14 +139,26 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
 
         {!loading && jobs.length === 0 ? (
           <div className="text-center py-10">
-            <h2 className="text-2xl font-bold">No jobs found</h2>
-            <p className="text-gray-600 mt-2">
+            <svg
+              className="w-16 h-16 text-gray-400 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <h2 className="text-2xl font-bold text-gray-800">No jobs found</h2>
+            <p className="text-gray-600 mt-2 max-w-md mx-auto">
               Try adjusting your filters or check back later.
             </p>
           </div>
         ) : (
           <>
-            {/* First row */}
             {firstRowJobs.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 {firstRowJobs.map((job) => (
@@ -135,7 +167,6 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
               </div>
             )}
 
-            {/* Second row */}
             {secondRowJobs.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {secondRowJobs.map((job) => (
@@ -149,7 +180,6 @@ export default function JobListingPage({ filters = {} as JobFilters }) {
     </div>
   );
 }
-
 // Job card component
 function JobCard({ job }: { job: Job }) {
   // Create an array from the description string (split by new lines)

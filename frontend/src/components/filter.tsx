@@ -31,7 +31,7 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
   // For debouncing filter changes
   const filterDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const locations = ["Chennai", "Bangalore", "Hyderabad", "Noida", "Remote"];
+  const locations = ["Chennai", "Banglore", "Hyderabad", "Noida", "Remote"];
   const jobTypes = ["Full-time", "Part-time", "Contract", "Internship"];
 
   // Send filter updates to parent component with debounce

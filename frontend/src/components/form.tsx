@@ -5,21 +5,12 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ChevronDown, Calendar, ChevronRight, Save } from "lucide-react";
 import { backendUrl } from "@/utils/url";
 import { toast } from "react-toastify";
-
-type FormData = {
-  jobTitle: string;
-  companyName: string;
-  location: string;
-  jobType: string;
-  minSalary: string;
-  maxSalary: string;
-  applicationDeadline: Date | null;
-  jobDescription: string;
-};
-
-type JobOpeningFormProps = {
-  closeForm: () => void;
-};
+import { FormData } from "@/interface/job";
+import { JobOpeningFormProps } from "@/interface/job";
+import { convertJobType } from "@/utils/jobtype";
+import { useJobStore } from "@/store/store";
+import { locationOptions } from "@/utils/jobtype";
+import { jobTypeOptions } from "@/utils/jobtype";
 
 const JobOpeningForm: React.FC<JobOpeningFormProps> = ({ closeForm }) => {
   const {
@@ -67,23 +58,6 @@ const JobOpeningForm: React.FC<JobOpeningFormProps> = ({ closeForm }) => {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  function convertJobType(
-    type: string
-  ): "Full-time" | "Part-time" | "Contract" | "Internship" {
-    switch (type) {
-      case "FullTime":
-        return "Full-time";
-      case "PartTime":
-        return "Part-time";
-      case "Contract":
-        return "Contract";
-      case "Internship":
-        return "Internship";
-      default:
-        return "Full-time";
-    }
-  }
-
   const onSubmit = async (data: FormData) => {
     const transformedData = {
       title: data.jobTitle,
@@ -94,7 +68,7 @@ const JobOpeningForm: React.FC<JobOpeningFormProps> = ({ closeForm }) => {
       description: data.jobDescription,
       application_deadline: data.applicationDeadline,
     };
-    console.log("Form submitted:", data);
+
     try {
       const response = await fetch(backendUrl + "/create-job", {
         method: "POST",
@@ -103,28 +77,22 @@ const JobOpeningForm: React.FC<JobOpeningFormProps> = ({ closeForm }) => {
         },
         body: JSON.stringify(transformedData),
       });
-      const datad = await response.json();
-      console.log(datad);
-      reset();
-      toast.success("Job created successfully!");
-      localStorage.removeItem("jobOpeningDraft");
-      closeForm();
-      window.location.reload();
+      const result = await response.json();
+      if (result.success) {
+        // Add the new job to the store immediately
+        useJobStore.getState().createJob(result.data);
+        reset();
+        toast.success("Job created successfully!");
+        localStorage.removeItem("jobOpeningDraft");
+        closeForm();
+      } else {
+        throw new Error("Failed to create job");
+      }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       toast.error("Failed to create job.");
     }
   };
-
-  const locationOptions = [
-    "Chennai",
-    "Banglore",
-    "Hyderabad",
-    "Noida",
-    "Remote",
-  ];
-
-  const jobTypeOptions = ["FullTime", "PartTime", "Contract", "Internship"];
 
   return (
     <div className="flex justify-center items-center max-h-screen p-4">
@@ -408,8 +376,7 @@ const JobOpeningForm: React.FC<JobOpeningFormProps> = ({ closeForm }) => {
               onClick={saveDraft}
               className="flex items-center justify-center px-4 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors w-full sm:w-auto text-sm text-black"
             >
-              Save Draft{" "}
-              <Save size={14} className="ml-2" />
+              Save Draft <Save size={14} className="ml-2" />
               {isSaved && <span className="ml-2 text-green-500">(Saved!)</span>}
             </button>
 

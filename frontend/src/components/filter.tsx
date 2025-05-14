@@ -2,23 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import { Search, MapPin, ChevronDown } from "lucide-react";
 import LogoSvg from "../../public/Vector.svg";
 import Image from "next/image";
-interface JobFilters {
-  searchQuery: string;
-  location: string | null;
-  jobType: string | null;
-  salary: [number, number];
-}
-
-interface JobFilterProps {
-  onFilterChange: (filters: JobFilters) => void;
-}
+import { JobFilters } from "@/interface/job";
+import { JobFilterProps } from "@/interface/job";
+import { locationOptions } from "@/utils/jobtype";
+import { jobTypeOptions } from "@/utils/jobtype";
 
 export default function JobFilter({ onFilterChange }: JobFilterProps) {
   // State for form inputs
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("Preferred Location");
   const [jobType, setJobType] = useState("Job type");
-  const [salary, setSalary] = useState<[number, number]>([0, 100]);
+  const [salary, setSalary] = useState<[number, number]>([20, 80]);
 
   // Dropdown states
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
@@ -31,16 +25,48 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
   // For debouncing filter changes
   const filterDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const locations = ["Chennai", "Banglore", "Hyderabad", "Noida", "Remote"];
-  const jobTypes = ["Full-time", "Part-time", "Contract", "Internship"];
+  // Track initial filter values to compare against
+  const initialFilters = useRef<JobFilters>({
+    searchQuery: "",
+    location: null,
+    jobType: null,
+    salary: [0, 100],
+  });
+
+
+  // Compare current filters with initial filters
+  const areFiltersInitial = () => {
+    return (
+      searchQuery === initialFilters.current.searchQuery &&
+      (location === "Preferred Location"
+        ? initialFilters.current.location === null
+        : location === initialFilters.current.location) &&
+      (jobType === "Job type"
+        ? initialFilters.current.jobType === null
+        : jobType === initialFilters.current.jobType) &&
+      salary[0] === initialFilters.current.salary[0] &&
+      salary[1] === initialFilters.current.salary[1]
+    );
+  };
 
   // Send filter updates to parent component with debounce
   const updateFilters = () => {
+    if (areFiltersInitial()) {
+      console.log("Skipping updateFilters: Filters are initial");
+      return; // Skip if filters haven't changed from initial values
+    }
+
     if (filterDebounceRef.current) {
       clearTimeout(filterDebounceRef.current);
     }
 
     filterDebounceRef.current = setTimeout(() => {
+      console.log("Calling onFilterChange with:", {
+        searchQuery,
+        location: location === "Preferred Location" ? null : location,
+        jobType: jobType === "Job type" ? null : jobType,
+        salary,
+      });
       onFilterChange({
         searchQuery,
         location: location === "Preferred Location" ? null : location,
@@ -50,7 +76,7 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
     }, 500);
   };
 
-  // Update filters when any input changes
+  // Update filters only when inputs change
   useEffect(() => {
     updateFilters();
     return () => {
@@ -193,7 +219,7 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
 
           {locationDropdownOpen && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
-              {locations.map((loc, index) => (
+              {locationOptions.map((loc, index) => (
                 <div
                   key={index}
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm"
@@ -236,7 +262,7 @@ export default function JobFilter({ onFilterChange }: JobFilterProps) {
 
           {jobTypeDropdownOpen && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
-              {jobTypes.map((type, index) => (
+              {jobTypeOptions.map((type, index) => (
                 <div
                   key={index}
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 text-sm"

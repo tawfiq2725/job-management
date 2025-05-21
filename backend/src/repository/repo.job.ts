@@ -48,21 +48,18 @@ export class JobRepository implements JobRepoSitory {
     const values: any[] = [];
     let idx = 1;
 
-    console.log("Filters:", filters); // Debug input
+    console.log("Filters:", filters);
 
-    // Handle title filter with partial match (case-insensitive)
     if (filters.title) {
       baseQuery += ` AND LOWER(title) LIKE LOWER($${idx++})`;
       values.push(`%${filters.title}%`);
     }
 
-    // Handle location filter with exact match
     if (filters.location) {
       baseQuery += ` AND location = $${idx++}`;
       values.push(filters.location);
     }
 
-    // Handle job_type filter with exact match
     if (filters.job_type) {
       const validJobTypes = [
         "Full-time",
@@ -77,7 +74,6 @@ export class JobRepository implements JobRepoSitory {
       values.push(filters.job_type);
     }
 
-    // Handle minSalary filter (converted to yearly INR)
     if (filters.minSalary !== undefined) {
       if (filters.minSalary < 0) {
         throw new Error("minSalary cannot be negative");
@@ -87,7 +83,6 @@ export class JobRepository implements JobRepoSitory {
       values.push(minSalaryINR);
     }
 
-    // Handle maxSalary filter (converted to yearly INR)
     if (filters.maxSalary !== undefined) {
       if (filters.maxSalary < 0) {
         throw new Error("maxSalary cannot be negative");
@@ -97,7 +92,6 @@ export class JobRepository implements JobRepoSitory {
       values.push(maxSalaryINR);
     }
 
-    // Validate minSalary <= maxSalary
     if (filters.minSalary !== undefined && filters.maxSalary !== undefined) {
       if (filters.minSalary > filters.maxSalary) {
         throw new Error("minSalary cannot be greater than maxSalary");
@@ -113,12 +107,10 @@ export class JobRepository implements JobRepoSitory {
       const result = await pool.query(baseQuery, values);
       console.log("Rows returned:", result.rows.length);
 
-      // If no rows match the exact criteria, return empty array
       if (result.rows.length === 0) {
         return [];
       }
 
-      // Map the results to the desired Job format
       return result.rows.map((row) => ({
         ...row,
         application_deadline: new Date(row.application_deadline),

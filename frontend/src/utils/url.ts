@@ -1,4 +1,4 @@
-const productionUrl = "https://job-management-app-ixcg.onrender.com";
+const productionUrl = "https://job-management-app-ixcg.onrender.com/api/job";
 
 export const backendUrl =
   process.env.NEXT_PUBLIC_NODE_ENV === "production"
